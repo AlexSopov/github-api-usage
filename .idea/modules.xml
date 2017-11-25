@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/github-api-usage.iml" filepath="$PROJECT_DIR$/.idea/modules/github-api-usage.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/github-api-usage_main.iml" filepath="$PROJECT_DIR$/.idea/modules/github-api-usage_main.iml" group="github-api-usage" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/github-api-usage_test.iml" filepath="$PROJECT_DIR$/.idea/modules/github-api-usage_test.iml" group="github-api-usage" />
+    </modules>
+  </component>
+</project>
