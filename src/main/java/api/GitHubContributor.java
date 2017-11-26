@@ -36,7 +36,7 @@ public class GitHubContributor implements MarkdownConvertiable {
     public String convertToMarkdown() {
         StringBuilder mdResult = new StringBuilder();
 
-        mdResult.append("*").append(name).append("*");
+        mdResult.append("*").append(name).append("* [").append(profileUrl).append("]");
         mdResult.append(". Contributions count: ").append(commitsCount);
 
         return mdResult.toString();
