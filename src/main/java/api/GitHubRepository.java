@@ -1,5 +1,8 @@
 package api;
 
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class GitHubRepository{
@@ -7,15 +10,22 @@ public class GitHubRepository{
     private String description;
     private String language;
     private String url;
+    private int totalCommitsCount;
     private List<GitHubContributor> repositoryContributors;
 
-    public GitHubRepository(String name, String description, String language, String url, List<GitHubContributor> repositoryContributors) {
-
+    public GitHubRepository(String name, String description, String language, String url) {
         this.name = name;
         this.description = description;
         this.language = language;
         this.url = url;
-        this.repositoryContributors = repositoryContributors;
+        this.repositoryContributors = new ArrayList<>();
+    }
+    public GitHubRepository(JSONObject gitHubRepositoryJson) {
+        this.name = gitHubRepositoryJson.getString("full_name");
+        this.description = gitHubRepositoryJson.isNull("description") ? "Description is not specified" : gitHubRepositoryJson.getString("description");
+        this.language = gitHubRepositoryJson.isNull("language") ? "Language is not specified" : gitHubRepositoryJson.getString("language");
+        this.url = gitHubRepositoryJson.getString("html_url");
+        this.repositoryContributors = new ArrayList<>();
     }
 
     public String getName() {
@@ -58,4 +68,21 @@ public class GitHubRepository{
         this.repositoryContributors = repositoryContributors;
     }
 
+    public int getTotalCommitsCount() {
+        return totalCommitsCount;
+    }
+
+    public void setTotalCommitsCount(int totalCommitsCount) {
+        this.totalCommitsCount = totalCommitsCount;
+    }
+
+    public GitHubContributor getContributorByEmail(String url) {
+        for (GitHubContributor gitHubContributor : repositoryContributors) {
+            if (gitHubContributor.getProfileUrl().equals(url)) {
+                return gitHubContributor;
+            }
+        }
+
+        return null;
+    }
 }

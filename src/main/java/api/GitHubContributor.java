@@ -1,5 +1,9 @@
 package api;
 
+import org.json.JSONObject;
+
+import java.util.Objects;
+
 public class GitHubContributor implements MarkdownConvertiable {
     private String name;
     private int commitsCount;
@@ -9,6 +13,10 @@ public class GitHubContributor implements MarkdownConvertiable {
         this.name = name;
         this.commitsCount = commitsCount;
         this.profileUrl = profileUrl;
+    }
+    public GitHubContributor(JSONObject gitHubContributorJson) {
+        this.name = gitHubContributorJson.getString("login");
+        this.profileUrl = gitHubContributorJson.getString("html_url");
     }
 
     public int getCommitsCount() {
@@ -40,5 +48,18 @@ public class GitHubContributor implements MarkdownConvertiable {
         mdResult.append(". Contributions count: ").append(commitsCount);
 
         return mdResult.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof GitHubContributor)) return false;
+        GitHubContributor that = (GitHubContributor) o;
+        return Objects.equals(profileUrl, that.profileUrl);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(profileUrl);
     }
 }
