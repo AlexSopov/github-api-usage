@@ -76,13 +76,22 @@ public class GitHubRepository{
         this.totalCommitsCount = totalCommitsCount;
     }
 
-    public GitHubContributor getContributorByEmail(String url) {
+    public void setContributorCommit(JSONObject committerJson) {
+        String committerUrl = committerJson.getString("html_url");
+        GitHubContributor committer = null;
+
         for (GitHubContributor gitHubContributor : repositoryContributors) {
-            if (gitHubContributor.getProfileUrl().equals(url)) {
-                return gitHubContributor;
+            if (gitHubContributor.getProfileUrl().equals(committerUrl)) {
+                committer = gitHubContributor;
+                break;
             }
         }
 
-        return null;
+        if (committer == null) {
+            committer = new GitHubContributor(committerJson);
+            repositoryContributors.add(committer);
+        }
+
+        committer.setCommitsCount(committer.getCommitsCount() + 1);
     }
 }

@@ -49,17 +49,4 @@ public class GitHubContributor implements MarkdownConvertiable {
 
         return mdResult.toString();
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof GitHubContributor)) return false;
-        GitHubContributor that = (GitHubContributor) o;
-        return Objects.equals(profileUrl, that.profileUrl);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(profileUrl);
-    }
 }

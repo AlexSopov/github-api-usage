@@ -44,7 +44,7 @@ public class GitHubApiInterop {
      * </ol>
      * @return List of 10 most starred repositories.
      */
-    public List<GitHubRepository> getMostStarredRepositories() throws URISyntaxException, IOException, InterruptedException {
+    public List<GitHubRepository> getMostStarredRepositories() throws URISyntaxException, IOException {
         URI requestUri = getBaseUriToGitHubApi()
                 .setPath("search/repositories")
                 .setParameter("q", "stars:>0")
@@ -53,16 +53,16 @@ public class GitHubApiInterop {
                 .build();
 
         JSONObject responseBody = new JSONObject(getResponse(requestUri).getValue());
-        JSONArray repositories = responseBody.getJSONArray("items");
+        JSONArray repositoriesJsonArray = responseBody.getJSONArray("items");
 
-        List<GitHubRepository> mostStarredRepositories = new ArrayList<>(5);
-        JSONObject currentJsonObject;
+        List<GitHubRepository> mostStarredRepositories = new ArrayList<>(10);
+        JSONObject currentRepositoryJson;
         GitHubRepository currentGitHubRepository;
-        for (int i = 0; i < 10 && i < repositories.length(); i++) {
-            currentJsonObject = repositories.getJSONObject(i);
+        for (int i = 0; i < 10 && i < repositoriesJsonArray.length(); i++) {
+            currentRepositoryJson = repositoriesJsonArray.getJSONObject(i);
 
-            currentGitHubRepository = new GitHubRepository(currentJsonObject);
-            currentGitHubRepository.setRepositoryContributors(getTopFiveContributorsOfRepositoryTotally(currentJsonObject.getString("contributors_url")));
+            currentGitHubRepository = new GitHubRepository(currentRepositoryJson);
+            currentGitHubRepository.setRepositoryContributors(getTopFiveContributorsOfRepositoryTotally(currentRepositoryJson.getString("contributors_url")));
 
             mostStarredRepositories.add(currentGitHubRepository);
         }
@@ -92,17 +92,17 @@ public class GitHubApiInterop {
      * @param toDate The end of period to search.
      * @return List which contains 10 most commited repositories during specified period.
      */
-    public List<GitHubRepository> getTopCommitedRepositoriesInPeriod(Calendar fromDate, Calendar toDate) throws URISyntaxException, IOException, InterruptedException {
+    public List<GitHubRepository> getTopCommitedRepositoriesInPeriod(Calendar fromDate, Calendar toDate) throws URISyntaxException, IOException {
         SimpleDateFormat iso8601DateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String iso8601DateFormatFromDate = iso8601DateFormat.format(fromDate.getTime());
         String iso8601DateFormatToDate = iso8601DateFormat.format(toDate.getTime());
 
-        List<GitHubRepository> commitedRepositoriesInPeriod = getCommitedRepositoriesInPeriod(iso8601DateFormatFromDate, iso8601DateFormatToDate);
-        sortRepositoriesByCommitsCountInPeriod(commitedRepositoriesInPeriod, iso8601DateFormatFromDate, iso8601DateFormatToDate);
-        List<GitHubRepository> mostCommitedRepositories = commitedRepositoriesInPeriod.subList(0, Math.min(commitedRepositoriesInPeriod.size(), 10));
-        initializeTopFiveContributorsOfRepositoryInPeriod(mostCommitedRepositories, iso8601DateFormatFromDate, iso8601DateFormatToDate);
+        List<GitHubRepository> topCommitedRepositories = getTopRepositories(10);
+        sortRepositoriesByCommitsCountInPeriod(topCommitedRepositories, iso8601DateFormatFromDate, iso8601DateFormatToDate);
+        topCommitedRepositories = topCommitedRepositories.subList(0, Math.min(topCommitedRepositories.size(), 10));
+        initializeTopFiveContributorsOfRepositoryInPeriod(topCommitedRepositories, iso8601DateFormatFromDate, iso8601DateFormatToDate);
 
-        return mostCommitedRepositories;
+        return topCommitedRepositories;
     }
 
     /**
@@ -111,15 +111,15 @@ public class GitHubApiInterop {
      * @return Pair: data from Link header and response body, converted to String
      * @throws ClientProtocolException if response code was not in range [200, 300)
      */
-    private Pair<String, String> getResponse(URI requestUri) throws IOException, InterruptedException {
+    private Pair<String, String> getResponse(URI requestUri) throws IOException {
 
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpGet httpget = new HttpGet(requestUri);
-            httpget.setHeader("Accept", "application/vnd.github.v3+json");
-            httpget.setHeader("Accept", "application/vnd.github.cloak-preview");
-            httpget.setHeader("Authorization", "token " + GITHUB_OAUTH_TOKEN);
+            HttpGet getRequest = new HttpGet(requestUri);
+            getRequest.setHeader("Accept", "application/vnd.github.v3+json");
+            getRequest.setHeader("Accept", "application/vnd.github.cloak-preview");
+            getRequest.setHeader("Authorization", "token " + GITHUB_OAUTH_TOKEN);
 
-            System.out.println("Executing request " + httpget.getRequestLine());
+            System.out.println("Executing request " + getRequest.getRequestLine());
 
             ResponseHandler<Pair<String, String>> responseHandler = response -> {
                 int status = response.getStatusLine().getStatusCode();
@@ -131,18 +131,21 @@ public class GitHubApiInterop {
                     String responseHeaderValue = responseHeader != null ? responseHeader.getValue() : null;
 
                     return new Pair<>(responseHeaderValue, responseBody);
-
                 } else {
                     throw new ClientProtocolException("Unexpected response status: " + status);
                 }
             };
 
-            Thread.sleep(3000);
-            return httpclient.execute(httpget, responseHandler);
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            }
+            return httpclient.execute(getRequest, responseHandler);
         }
     }
 
-    private List<GitHubRepository> getCommitedRepositoriesInPeriod(String fromDate, String toDate) throws URISyntaxException, IOException, InterruptedException {
+    private List<GitHubRepository> getTopRepositories(int maxRepositories) throws URISyntaxException, IOException {
         URI requestUri = getBaseUriToGitHubApi()
                 .setPath("search/repositories")
                 .setParameter("q", "stars:>0")
@@ -157,7 +160,7 @@ public class GitHubApiInterop {
         JSONObject currentJsonObject;
         JSONArray currentRepositories;
 
-        while (requestUri != null && commitedRepositoriesInPeriod.size() < 300) {
+        while (requestUri != null && commitedRepositoriesInPeriod.size() < maxRepositories) {
             currentResponse = getResponse(requestUri);
 
             currentJsonObject = new JSONObject(currentResponse.getValue());
@@ -169,7 +172,7 @@ public class GitHubApiInterop {
 
         return commitedRepositoriesInPeriod;
     }
-    private void sortRepositoriesByCommitsCountInPeriod(List<GitHubRepository> gitHubRepositories, String fromDate, String toDate) throws URISyntaxException, IOException, InterruptedException {
+    private void sortRepositoriesByCommitsCountInPeriod(List<GitHubRepository> gitHubRepositories, String fromDate, String toDate) throws URISyntaxException, IOException {
         String repositoryCommitsInPeriodRequestParameter = String.format("committer-date:%s..%s repo:", fromDate, toDate) + "%s";
 
         URIBuilder baseUriForCommitsInPeriod = getBaseUriToGitHubApi().setPath("search/commits");
@@ -187,16 +190,13 @@ public class GitHubApiInterop {
 
         gitHubRepositories.sort(Comparator.comparing(GitHubRepository::getTotalCommitsCount).reversed());
     }
-    private void initializeTopFiveContributorsOfRepositoryInPeriod(List<GitHubRepository> gitHubRepositories, String fromDate, String toDate) throws URISyntaxException, IOException, InterruptedException {
+    private void initializeTopFiveContributorsOfRepositoryInPeriod(List<GitHubRepository> gitHubRepositories, String fromDate, String toDate) throws URISyntaxException, IOException {
         String repositoryCommitsInPeriodRequestParameter = String.format("committer-date:%s..%s repo:", fromDate, toDate) + "%s";
 
         URIBuilder baseUriForCommitsInPeriod = getBaseUriToGitHubApi().setPath("search/commits");
         URI repositoryCommitsInPeriodRequest;
-
         Pair<String, String> currentResponse;
         JSONObject currentCommitJsonObject;
-        JSONArray commitsToRepositoryInPeriod;
-        GitHubContributor currentGitHubContributor;
 
         for (GitHubRepository gitHubRepository : gitHubRepositories) {
             repositoryCommitsInPeriodRequest = baseUriForCommitsInPeriod
@@ -207,26 +207,14 @@ public class GitHubApiInterop {
                 currentResponse = getResponse(repositoryCommitsInPeriodRequest);
                 currentCommitJsonObject = new JSONObject(currentResponse.getValue());
 
-                commitsToRepositoryInPeriod = currentCommitJsonObject.getJSONArray("items");
-
-                for (Object commit : commitsToRepositoryInPeriod) {
+                for (Object commit : currentCommitJsonObject.getJSONArray("items")) {
                     currentCommitJsonObject = (JSONObject)commit;
 
                     if (currentCommitJsonObject.isNull("committer")) {
                         continue;
                     }
                     currentCommitJsonObject = currentCommitJsonObject.getJSONObject("committer");
-
-
-                    currentGitHubContributor = gitHubRepository.getContributorByEmail(currentCommitJsonObject.getString("html_url"));
-
-                    if (currentGitHubContributor != null) {
-                        currentGitHubContributor.setCommitsCount(currentGitHubContributor.getCommitsCount() + 1);
-                    } else {
-                        currentGitHubContributor = new GitHubContributor(currentCommitJsonObject);
-                        currentGitHubContributor.setCommitsCount(1);
-                        gitHubRepository.getRepositoryContributors().add(currentGitHubContributor);
-                    }
+                    gitHubRepository.setContributorCommit(currentCommitJsonObject);
                 }
 
                 gitHubRepository.getRepositoryContributors().sort(Comparator.comparing(GitHubContributor::getCommitsCount).reversed());
@@ -234,17 +222,17 @@ public class GitHubApiInterop {
             }
         }
     }
-    private List<GitHubContributor> getTopFiveContributorsOfRepositoryTotally(String contributorsUrlString) throws URISyntaxException, IOException, InterruptedException {
+    private List<GitHubContributor> getTopFiveContributorsOfRepositoryTotally(String contributorsUrlString) throws URISyntaxException, IOException {
         List<GitHubContributor> contributorsOfRepository = new ArrayList<>();
 
-        JSONArray jsonArray = new JSONArray(getResponse(new URI(contributorsUrlString)).getValue());
-        JSONObject currentJsonObject;
+        JSONArray contributorsJsonArray = new JSONArray(getResponse(new URI(contributorsUrlString)).getValue());
+        JSONObject currentContributorJson;
         GitHubContributor currentGitHubContributor;
 
-        for (int i = 0; i < 5 && i < jsonArray.length(); i++) {
-            currentJsonObject = jsonArray.getJSONObject(i);
-            currentGitHubContributor = new GitHubContributor(currentJsonObject);
-            currentGitHubContributor.setCommitsCount(currentJsonObject.getInt("contributions"));
+        for (int i = 0; i < 5 && i < contributorsJsonArray.length(); i++) {
+            currentContributorJson = contributorsJsonArray.getJSONObject(i);
+            currentGitHubContributor = new GitHubContributor(currentContributorJson);
+            currentGitHubContributor.setCommitsCount(currentContributorJson.getInt("contributions"));
             contributorsOfRepository.add(currentGitHubContributor);
         }
 
