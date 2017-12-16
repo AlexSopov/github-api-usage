@@ -4,7 +4,7 @@ import org.json.JSONObject;
 
 import java.util.Objects;
 
-public class GitHubContributor implements MarkdownConvertiable {
+public class GitHubContributor {
     private String name;
     private int commitsCount;
     private String profileUrl;
@@ -38,15 +38,5 @@ public class GitHubContributor implements MarkdownConvertiable {
     }
     public void setProfileUrl(String profileUrl) {
         this.profileUrl = profileUrl;
-    }
-
-    @Override
-    public String convertToMarkdown() {
-        StringBuilder mdResult = new StringBuilder();
-
-        mdResult.append("*").append(name).append("* [").append(profileUrl).append("]");
-        mdResult.append(". Contributions count: ").append(commitsCount);
-
-        return mdResult.toString();
     }
 }
