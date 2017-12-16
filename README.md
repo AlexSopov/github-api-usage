@@ -1,5 +1,12 @@
-# github-api-usage
+# Using of gitHub api
+In this repository using of gitHub api in java with Apache client is provided.
 
+[![Build Status](https://travis-ci.org/AlexSopov/github-api-usage.svg?branch=master)](https://travis-ci.org/AlexSopov/github-api-usage)
+[![codecov](https://codecov.io/gh/AlexSopov/github-api-usage/branch/master/graph/badge.svg)](https://codecov.io/gh/AlexSopov/github-api-usage)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2e3ec5dfdb964e259fd06f7afed474b7)](https://www.codacy.com/app/AlexSopov/github-api-usage?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=AlexSopov/github-api-usage&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/2e3ec5dfdb964e259fd06f7afed474b7)](https://www.codacy.com/app/AlexSopov/github-api-usage?utm_source=github.com&utm_medium=referral&utm_content=AlexSopov/github-api-usage&utm_campaign=Badge_Coverage)
+
+### Most starred repositories
 **_1. freeCodeCamp/freeCodeCamp_**<br>**Repository URL:** https://github.com/freeCodeCamp/freeCodeCamp<br>**Description:** The https://freeCodeCamp.org open source codebase and curriculum. Learn to code and help nonprofits.<br>**Language:** JavaScript<br>Top contributors: <br> 
 * *QuincyLarson* [https://github.com/QuincyLarson]. Contributions count: 2359
 * *BerkeleyTrue* [https://github.com/BerkeleyTrue]. Contributions count: 1795
@@ -90,10 +97,7 @@
 <br> 
 
 
-
-
-
-2017-09-11..2017-09-17
+### Most commited repositories in period 2017-09-11..2017-09-17
 **_1. torvalds/linux_**<br>**Repository URL:** https://github.com/torvalds/linux<br>**Description:** Linux kernel source tree<br>**Language:** C<br>**Total contributions during period:** 634<br>Top contributors: <br> 
 * *torvalds* [https://github.com/torvalds]. Contributions count during period: 70
 * *gregkh* [https://github.com/gregkh]. Contributions count during period: 44
